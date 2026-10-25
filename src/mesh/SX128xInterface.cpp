@@ -145,8 +145,11 @@ template <typename T> int16_t SX128xInterface<T>::programAltModemFSK()
     }
     // Uniform Nexus wire profile (Jenny ruling 2026-10-14): pin sync/whitening/NRZ/ CRC —
     // note §7: SX128x GFSK whitening defaults ON (silent killer), so OFF must be explicit.
-    uint8_t wireSync[2] = {0x12, 0xAD};
-    err = lora.setSyncWord(wireSync, sizeof(wireSync));
+    // 4-byte sync on SX128x: with the 2-byte 0x12AD the receiver kept locking onto noise and missed every real packet
+    // from 500 kbps up (bench: 0/20 at 500/1000/2000k, 20/20 with this word); only 250k still got through.
+    uint8_t altSync[sizeof(sx128xAltSyncWord)];
+    memcpy(altSync, sx128xAltSyncWord, sizeof(altSync));
+    err = lora.setSyncWord(altSync, sizeof(altSync));
     if (err != RADIOLIB_ERR_NONE) {
         LOG_ERROR("SX128X GFSK setSyncWord %s%d", radioLibErr, err);
         return err;
