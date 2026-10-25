@@ -9,6 +9,7 @@
 #include "MeshService.h"
 #include "MessageStore.h"
 #include "NodeDB.h"
+#include "PacketProfiler.h"
 #include "Power.h"
 #include "PowerFSM.h"
 #include "TypeConversions.h"
@@ -650,6 +651,7 @@ void MeshService::sendToPhone(meshtastic_MeshPacket *p)
         fromNum++; // notify observers so phone can resync
         return;
     }
+    PROF_DO(prof::mark(p->id, prof::SLOT_PQ));
     fromNum++;
 }
 

@@ -4,6 +4,7 @@
 
 #include "PowerFSM.h"
 #include "StreamAPI.h"
+#include "PacketProfiler.h"
 #include "Throttle.h"
 #include "concurrency/LockGuard.h"
 #include "gps/RTC.h"
@@ -235,6 +236,7 @@ bool StreamAPI::writeFrame(uint8_t *buf, size_t len, bool bestEffort)
 /// Emit the prepared main PhoneAPI payload as required output.
 bool StreamAPI::emitTxBuffer(size_t len)
 {
+    PROF_SCOPE(API_EMIT);
     return writeFrame(txBuf, len, false);
 }
 
