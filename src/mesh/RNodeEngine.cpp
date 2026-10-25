@@ -322,7 +322,9 @@ bool RNodeEngine::looksLikeReticulumPacket(const uint8_t *raw, size_t len)
 
 void RNodeEngine::sendKissFrame(uint8_t cmd, const uint8_t *payload, size_t len, RNodeClientType targetClient)
 {
-    uint8_t out[MAX_KISS_FRAME_LEN * 2];
+    // Static, not on the stack: on nRF52 this runs inside the 3 KB Bluefruit callback task, where a 1 KB local frame
+    // leaves little headroom. Not reentrant: a BLE-side reply and a main-loop RX forward can still race.
+    static uint8_t out[MAX_KISS_FRAME_LEN * 2];
     size_t idx = 0;
 
     out[idx++] = RNODE_FEND;

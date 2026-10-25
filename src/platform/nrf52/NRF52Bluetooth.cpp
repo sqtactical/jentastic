@@ -38,8 +38,9 @@ static BLEUart rnodeBleUart;
 static void rnode_nrf52_ble_write(const uint8_t *data, size_t len)
 {
     if (rnodeBleUart.notifyEnabled()) {
+        // Unbuffered BLEUart: write() notifies directly. flushTXD() reads the TX FIFO, which only exists after
+        // bufferTXD(true) - with it NULL the node hard-faulted on its first KISS reply.
         rnodeBleUart.write(data, len);
-        rnodeBleUart.flushTXD();
     }
 }
 #endif
