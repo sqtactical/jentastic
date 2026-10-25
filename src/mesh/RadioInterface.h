@@ -113,6 +113,13 @@ class RadioInterface
     static constexpr uint8_t CWmin = 3; // minimum CWsize
     static constexpr uint8_t CWmax = 8; // maximum CWsize
 
+    // SETFSK/SETFLRC timing: packets take 1-10 ms on air, so the LoRa-sized slots and processing allowance dominate
+    static constexpr uint32_t ALT_MODEM_SLOT_TIME_MSEC = 1;
+    static constexpr uint32_t ALT_MODEM_PROCESSING_TIME_MSEC = 1000;
+    // a receiver must read each frame before the next overwrites the chip's buffer; its main loop can be busy ~10 ms
+    static constexpr uint32_t ALT_MODEM_MIN_TX_GAP_MSEC = 10;
+    static bool altModemActive();
+
     meshtastic_MeshPacket *sendingPacket = NULL; // The packet we are currently sending
     uint32_t lastTxStart = 0L;
 

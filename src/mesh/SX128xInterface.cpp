@@ -571,8 +571,11 @@ template <typename T> bool SX128xInterface<T>::isChannelActive()
     // drops getRSSI to the standby floor and makes channel activity detection blind.
     if (meshtastic::nexusModule && meshtastic::nexusModule->altModem.mode != 0) {
         float rssi = lora.getRSSI(false); // instantaneous, not last-packet status
-        LOG_TRACE("SX128X alt-modem channel sniff RSSI=%.1f dBm", rssi);
-        if (rssi > -100.0f)
+        // A fixed -100 dBm sits inside the noise of the wide GFSK/FLRC filters (2.4 MHz at 1-2 Mbps), so nodes kept
+        // backing off on an idle channel. Busy = 10 dB over the larger of the mode's sensitivity and the noise floor.
+        float threshold = max(altSensitivityDbm(), (float)getNoiseFloor()) + 10.0f;
+        LOG_TRACE("SX128X alt-modem channel sniff RSSI=%.1f dBm (busy above %.1f)", rssi, threshold);
+        if (rssi > threshold)
             return true;
         int16_t result = trySetStandby();
         if (result != RADIOLIB_ERR_NONE) {
