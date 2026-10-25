@@ -608,6 +608,10 @@ void enterDfuMode()
 #ifdef NRF_USE_SERIAL_DFU
     enterSerialDfu();
 #else
+#ifdef NRF52_PROMICRO_DIY
+    // The ProMicro DIY UF2 bootloader only stays in DFU when its RAM double-reset magic is set as well as GPREGRET
+    *(volatile uint32_t *)0x20007F7C = 0x5A1AD5;
+#endif
     enterUf2Dfu();
 #endif
 }
