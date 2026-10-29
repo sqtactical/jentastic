@@ -757,9 +757,17 @@ template <typename T> bool SX126xInterface<T>::isChannelActive()
     // and rendering channel activity detection completely blind.
     if (meshtastic::nexusModule && meshtastic::nexusModule->altModem.mode == 1) {
         float rssi = lora.getRSSI(false);
-        LOG_TRACE("SX126X FSK channel sniff RSSI=%.1f dBm", rssi);
-        if (rssi > -100.0f)
+        // A fixed -100 dBm sits inside the noise of the wider filters (312-467 kHz, more so behind a module's LNA), so
+        // nodes kept backing off on an idle channel. Busy = 10 dB over the larger of the sensitivity this filter allows
+        // (kTB + ~12 dB of noise figure and required SNR; matches the datasheet's 250 kb/s / 500 kHz row) and the
+        // measured noise floor - the rule the SX128x alt modes use.
+        const float sensitivity = -162.0f + 10.0f * log10f(meshtastic::nexusModule->altModem.rxBwKHz * 1000.0f);
+        const float threshold = max(sensitivity, (float)getNoiseFloor()) + 10.0f;
+        LOG_TRACE("SX126X FSK channel sniff RSSI=%.1f dBm (busy above %.1f)", rssi, threshold);
+        if (rssi > threshold) {
+            LOG_DEBUG("SX126X FSK channel busy, RSSI %.1f > %.1f dBm", rssi, threshold);
             return true;
+        }
         setTransmitEnable(false);
         int16_t result = trySetStandby();
         if (result != RADIOLIB_ERR_NONE)
@@ -796,8 +804,12 @@ template <typename T> bool SX126xInterface<T>::isActivelyReceiving()
     if (meshtastic::nexusModule && meshtastic::nexusModule->altModem.mode == 1) {
         const uint16_t irq = lora.getIrqFlags();
         const uint16_t latch = RADIOLIB_SX126X_IRQ_SYNC_WORD_VALID | RADIOLIB_SX126X_IRQ_PREAMBLE_DETECTED;
+        // Only a valid sync word counts. A bare PREAMBLE_DETECTED would start receiveDetected()'s preamble hold, which
+        // lasts one max-length LoRa frame of the parked preset (~0.7 s on MEDIUM_FAST) - longer than the whole
+        // retransmission timeout of a fast FSK link, so every ACK went out late and the sender re-sent (bench
+        // 2026-10-29, E22P at 100-300 kb/s). The preamble detector also trips on noise far more often than the sync word.
         const bool detected = receiveDetected(irq, RADIOLIB_SX126X_IRQ_SYNC_WORD_VALID,
-                                              RADIOLIB_SX126X_IRQ_PREAMBLE_DETECTED);
+                                              RADIOLIB_SX126X_IRQ_SYNC_WORD_VALID);
         // Bench 2026-10-17 (heltec V3/V4 FSK): GFSK's pattern-matching preamble/sync
         // detector false-trips on noise, and on the DIO1 interrupt path nobody clears
         // those non-terminal bits (handleReceiveInterrupt's short-packet path returns
