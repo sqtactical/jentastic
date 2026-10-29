@@ -818,8 +818,12 @@ template <typename T> bool SX126xInterface<T>::isActivelyReceiving()
     if (meshtastic::nexusModule && meshtastic::nexusModule->altModem.mode == 1) {
         const uint16_t irq = lora.getIrqFlags();
         const uint16_t latch = RADIOLIB_SX126X_IRQ_SYNC_WORD_VALID | RADIOLIB_SX126X_IRQ_PREAMBLE_DETECTED;
+        // Only a valid sync word counts. A bare PREAMBLE_DETECTED would start receiveDetected()'s preamble hold, which
+        // lasts one max-length LoRa frame of the parked preset (~0.7 s on MEDIUM_FAST) - longer than the whole
+        // retransmission timeout of a fast FSK link, so every ACK went out late and the sender re-sent (bench
+        // 2026-10-29, E22P at 100-300 kb/s). The preamble detector also trips on noise far more often than the sync word.
         const bool detected = receiveDetected(irq, RADIOLIB_SX126X_IRQ_SYNC_WORD_VALID,
-                                              RADIOLIB_SX126X_IRQ_PREAMBLE_DETECTED);
+                                              RADIOLIB_SX126X_IRQ_SYNC_WORD_VALID);
         // Bench 2026-10-17 (heltec V3/V4 FSK): GFSK's pattern-matching preamble/sync
         // detector false-trips on noise, and on the DIO1 interrupt path nobody clears
         // those non-terminal bits (handleReceiveInterrupt's short-packet path returns
