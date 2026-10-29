@@ -1,8 +1,9 @@
 # SETFSK / SETFLRC on SX1280: bench results and fixes
 
 > **Status (2026-10-29):** the code changes described here are in Jentastic `testing` since `712debb` ("More fixes
-> from … bench test for the SX1280"), in some cases extended to the LR11x0/LR20x0. This branch now sits on `testing`
-> at `0ea3007` and only adds this document; the original commits, on `26a0451`, are kept on `sx1280-fsk-flrc-26a0451`.
+> from … bench test for the SX1280"), in some cases extended to the LR11x0/LR20x0. This write-up now lives on
+> `sx12xx-fsk-flrc` (on `testing` at `0ea3007`, together with the SX1262 work in `docs/sx1262-fsk.md`); the original
+> commits, on `26a0451`, are kept on `sx1280-fsk-flrc-26a0451`.
 
 Originally branch `sx1280-fsk-flrc`, based on `testing` at `26a0451`, measured on two ProMicro nRF52840 + Ebyte
 E28-2G4M27S boards (`nrf52_promicro_diy_e28`). As shipped, SETFLRC delivered nothing on an SX1280 pair and SETFSK only worked at

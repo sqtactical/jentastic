@@ -1,6 +1,6 @@
 # SETFSK on SX1262 at 868 MHz: bench results and fixes
 
-Branch `sx1262-fsk`, on `testing` at `0ea3007`, measured on two ProMicro nRF52840 + Ebyte E22P (SX1262) boards
+Branch `sx12xx-fsk-flrc` (SX1280 and SX1262 work together), on `testing` at `0ea3007`, measured on two ProMicro nRF52840 + Ebyte E22P (SX1262) boards
 (`nrf52_promicro_diy_sx1262`). On `testing` at `26a0451`, SETFSK worked up to 50 kbps on this pair and degraded
 above it (300 kbps: 11/20 ACKs at a 3.9 s median, 2/20 broadcasts received). Two fixes made every rate from 25 to
 300 kbps deliver 20/20, with a direct message confirmed in **~100 ms** from 150 kbps up (LoRa MEDIUM_FAST: 962 ms).
